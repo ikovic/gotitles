@@ -2,16 +2,24 @@ package main
 
 import (
 	"fmt"
-	"net/http"
+	"log"
 	"os"
 	"strings"
-	"time"
+
+	"github.com/ikovic/gotitles/hash"
 )
 
 func main() {
 	args := os.Args[1:]
 
-	client := http.Client{Timeout: time.Second * 10}
+	path := strings.Join(args, " ")
 
-	fmt.Println(strings.Join(args, " "))
+	file, err := os.Open(path) // For read access.
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	hash, err := hash.HashFile(file)
+
+	fmt.Println(hash)
 }
