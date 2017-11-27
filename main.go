@@ -1,7 +1,17 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+)
 
 func main() {
-	fmt.Println("gotitles")
+	args := os.Args[1:]
+
+	client := http.Client{Timeout: time.Second * 10}
+
+	fmt.Println(strings.Join(args, " "))
 }
