@@ -6,13 +6,13 @@ import (
 
 type queue interface {
 	IsEmpty() bool
-	Enqueue(os.FileInfo)
-	Dequeue() *os.FileInfo
+	Enqueue(os.File)
+	Dequeue() *os.File
 }
 
 // FileQueue describes a node in FS tree
 type FileQueue struct {
-	files []os.FileInfo
+	files []os.File
 }
 
 // IsEmpty tells us if queue has any elements
@@ -21,12 +21,12 @@ func (q FileQueue) IsEmpty() bool {
 }
 
 // Enqueue pushes a new item to the queue
-func (q *FileQueue) Enqueue(f os.FileInfo) {
+func (q *FileQueue) Enqueue(f os.File) {
 	q.files = append(q.files, f)
 }
 
 // Dequeue removes the first item from the queue and returns it
-func (q FileQueue) Dequeue() *os.FileInfo {
+func (q FileQueue) Dequeue() *os.File {
 	if q.IsEmpty() {
 		return nil
 	}

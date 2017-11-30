@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/ikovic/gotitles/queue"
@@ -26,17 +27,26 @@ func traverse(path string, nodes []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fileInfo, err := file.Stat()
 
-	kju := new(queue.FileQueue)
+	queue := new(queue.FileQueue)
+	queue.Enqueue(*file)
 
-	fmt.Println(kju.IsEmpty())
+	for !queue.IsEmpty() {
+		f := queue.Dequeue()
+		fileInfo, _ := f.Stat()
+		fmt.Println(fileInfo.Name())
+		// if dir, get children info
+		if fileInfo.IsDir() {
+			childrenNames, _ := f.Readdirnames(0)
+			for _, name := range childrenNames {
+				// find the exact path
+				filePath, _ := filepath.Abs(filepath.Dir(name))
+				fmt.Println(filePath)
+				child, _ := os.Open(filePath)
+				queue.Enqueue(*child)
+			}
+		}
 
-	kju.Enqueue(fileInfo)
+	}
 
-	fmt.Println(kju.IsEmpty())
-
-	infou := *kju.Dequeue()
-
-	fmt.Println(infou.Name())
 }
