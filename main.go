@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/oz/osdb"
+	"github.com/urfave/cli"
 	"gopkg.in/h2non/filetype.v1"
 )
 
@@ -21,7 +21,7 @@ func searchSubtitles(path string, languages []string) {
 	}
 
 	directory := filepath.Dir(path)
-	fullPath := directory + subs[0].SubFileName
+	fullPath := filepath.Join(directory, subs[0].SubFileName)
 
 	if err := osdbClient.DownloadTo(&subs[0], fullPath); err != nil {
 		fmt.Printf("\nError saving %v", fullPath)
@@ -48,12 +48,17 @@ func walk(path string, info os.FileInfo, err error) error {
 }
 
 func main() {
-	args := os.Args[1:]
-	path := strings.Join(args, " ")
+	app := cli.NewApp()
+	app.Name = "goTitties"
+	app.Usage = "Download subtitles for all movie files in path"
+	app.Action = func(c *cli.Context) error {
+		path := c.Args().Get(0)
+		osdbClient.LogIn("", "", "")
+		filepath.Walk(path, walk)
+		return nil
+	}
 
-	osdbClient.LogIn("", "", "")
-
-	filepath.Walk(path, walk)
+	app.Run(os.Args)
 
 	// don't stop
 	var input string
