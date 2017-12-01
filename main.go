@@ -10,8 +10,18 @@ import (
 	"gopkg.in/h2non/filetype.v1"
 )
 
+// AppName is the application name, used for naming a folder where subs will be placed
+const AppName = "gotitles"
+
 var osdbClient, _ = osdb.NewClient()
 var languages = []string{"hrv"}
+
+func createAppDirectory(path string) {
+	appDirectory := filepath.Join(path, AppName)
+	if _, err := os.Stat(appDirectory); os.IsNotExist(err) {
+		os.Mkdir(appDirectory, os.ModePerm)
+	}
+}
 
 func searchSubtitles(path string, languages []string) {
 	subs, _ := osdbClient.FileSearch(path, languages)
@@ -21,7 +31,8 @@ func searchSubtitles(path string, languages []string) {
 	}
 
 	directory := filepath.Dir(path)
-	fullPath := filepath.Join(directory, subs[0].SubFileName)
+	fullPath := filepath.Join(directory, AppName, subs[0].SubFileName)
+	createAppDirectory(directory)
 
 	if err := osdbClient.DownloadTo(&subs[0], fullPath); err != nil {
 		fmt.Printf("\nError saving %v", fullPath)
@@ -49,7 +60,7 @@ func walk(path string, info os.FileInfo, err error) error {
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "goTitties"
+	app.Name = AppName
 	app.Usage = "Download subtitles for all movie files in path"
 	app.Action = func(c *cli.Context) error {
 		path := c.Args().Get(0)
