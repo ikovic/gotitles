@@ -15,9 +15,10 @@ import (
 const AppName = "gotitles"
 
 var osdbClient, _ = osdb.NewClient()
-var languages = []string{"hrv"}
+var languages []string
 var wg sync.WaitGroup
 
+// create the special directory for saving subtitles
 func createAppDirectory(path string) {
 	appDirectory := filepath.Join(path, AppName)
 	if _, err := os.Stat(appDirectory); os.IsNotExist(err) {
@@ -25,6 +26,7 @@ func createAppDirectory(path string) {
 	}
 }
 
+// Search and download subtitles for the given file
 func searchSubtitles(path string, languages []string) {
 	subs, _ := osdbClient.FileSearch(path, languages)
 
@@ -43,6 +45,7 @@ func searchSubtitles(path string, languages []string) {
 	}
 }
 
+// Check if the file is a video, download subtitles if it is
 func analyzeFile(path string, info os.FileInfo) {
 	defer wg.Done()
 	if !info.IsDir() {
@@ -66,9 +69,25 @@ func main() {
 	app := cli.NewApp()
 	app.Name = AppName
 	app.Usage = "Download subtitles for all movie files in path"
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:  "language, l",
+			Value: "eng",
+			Usage: "3 letter code",
+		},
+	}
 	app.Action = func(c *cli.Context) error {
+		if c.NArg() != 1 {
+			fmt.Println("Path to a folder should be provided")
+			return nil
+		}
 		path := c.Args().Get(0)
+		languages = append(languages, c.String("language"))
+
+		// log in to OSDB first
 		osdbClient.LogIn("", "", "")
+
+		// walk the FS and search for video files
 		filepath.Walk(path, walk)
 		return nil
 	}
