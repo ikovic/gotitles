@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/oz/osdb"
 	"github.com/urfave/cli"
@@ -15,6 +16,7 @@ const AppName = "gotitles"
 
 var osdbClient, _ = osdb.NewClient()
 var languages = []string{"hrv"}
+var wg sync.WaitGroup
 
 func createAppDirectory(path string) {
 	appDirectory := filepath.Join(path, AppName)
@@ -42,6 +44,7 @@ func searchSubtitles(path string, languages []string) {
 }
 
 func analyzeFile(path string, info os.FileInfo) {
+	defer wg.Done()
 	if !info.IsDir() {
 		file, _ := os.Open(path)
 		head := make([]byte, 261)
@@ -54,6 +57,7 @@ func analyzeFile(path string, info os.FileInfo) {
 }
 
 func walk(path string, info os.FileInfo, err error) error {
+	wg.Add(1)
 	go analyzeFile(path, info)
 	return nil
 }
@@ -71,7 +75,6 @@ func main() {
 
 	app.Run(os.Args)
 
-	// don't stop
-	var input string
-	fmt.Scanln(&input)
+	wg.Wait()
+	fmt.Println("\nDone!")
 }
