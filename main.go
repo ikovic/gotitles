@@ -77,7 +77,7 @@ func main() {
 		},
 	}
 	app.Action = func(c *cli.Context) error {
-		if c.NArg() != 1 {
+		if c.NArg() < 1 {
 			fmt.Println("Path to a folder should be provided")
 			return nil
 		}
