@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,19 +10,14 @@ import (
 	"gopkg.in/h2non/filetype.v1"
 )
 
-func getHash(path string) uint64 {
-	file, _ := os.Open(path)
-	hash, _ := hash.HashFile(file)
-	return hash
-}
-
 func analyzeFile(path string, info os.FileInfo) {
 	if !info.IsDir() {
-		buf, _ := ioutil.ReadFile(path)
-		head := buf[:261]
+		file, _ := os.Open(path)
+		head := make([]byte, 261)
+		file.Read(head)
 
 		if filetype.IsVideo(head) {
-			hash := getHash(path)
+			hash, _ := hash.HashFile(file)
 			fmt.Println(hash)
 		}
 	}
