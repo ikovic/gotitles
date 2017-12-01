@@ -89,6 +89,7 @@ func main() {
 
 		// walk the FS and search for video files
 		filepath.Walk(path, walk)
+
 		return nil
 	}
 
