@@ -6,9 +6,29 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/ikovic/gotitles/hash"
+	"github.com/oz/osdb"
 	"gopkg.in/h2non/filetype.v1"
 )
+
+var osdbClient, _ = osdb.NewClient()
+var languages = []string{"hrv"}
+
+func searchSubtitles(path string, languages []string) {
+	subs, _ := osdbClient.FileSearch(path, languages)
+
+	if len(subs) == 0 {
+		return
+	}
+
+	directory := filepath.Dir(path)
+	fullPath := directory + subs[0].SubFileName
+
+	if err := osdbClient.DownloadTo(&subs[0], fullPath); err != nil {
+		fmt.Printf("\nError saving %v", fullPath)
+	} else {
+		fmt.Printf("\nSaved %s", fullPath)
+	}
+}
 
 func analyzeFile(path string, info os.FileInfo) {
 	if !info.IsDir() {
@@ -17,8 +37,7 @@ func analyzeFile(path string, info os.FileInfo) {
 		file.Read(head)
 
 		if filetype.IsVideo(head) {
-			hash, _ := hash.HashFile(file)
-			fmt.Println(hash)
+			searchSubtitles(path, languages)
 		}
 	}
 }
@@ -31,6 +50,8 @@ func walk(path string, info os.FileInfo, err error) error {
 func main() {
 	args := os.Args[1:]
 	path := strings.Join(args, " ")
+
+	osdbClient.LogIn("", "", "")
 
 	filepath.Walk(path, walk)
 
